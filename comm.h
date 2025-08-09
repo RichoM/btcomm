@@ -2,7 +2,6 @@
 #include "Arduino.h"
 #include "types.h"
 #include "reader.h"
-#include "debug.h"
 
 struct SetMotorsPayload 
 {
@@ -45,7 +44,6 @@ public:
     
     bool timeout;
     uint8 in = reader.next(timeout);
-    s.push(in);
     
     if (timeout) return NO_MESSAGE;
 
@@ -61,23 +59,18 @@ public:
 
     bool timeout;
     uint8 directions = reader.next(timeout);
-    s.push(directions);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_1 = reader.next(timeout);
-    s.push(motor_1);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_2 = reader.next(timeout);
-    s.push(motor_2);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_3 = reader.next(timeout);
-    s.push(motor_3);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_4 = reader.next(timeout);
-    s.push(motor_4);
     if (timeout) return NO_MESSAGE;
     
     SetMotorsPayload payload;

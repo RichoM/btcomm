@@ -1,6 +1,4 @@
-
-// #include <DC_driver.h>
-#include "debug.h"
+#include <DC_driver.h>
 #include "comm.h"
 
 DC_driver motor_1(7, 8, 6);
@@ -11,8 +9,6 @@ DC_driver motor_4(12, 11, 9);
 Comm comm(&Serial);
 
 void setup() {
-  debug_begin();
-
   motor_1.begin();
   motor_2.begin();
   motor_3.begin();
@@ -33,4 +29,12 @@ void handle_set_motors(SetMotorsPayload payload) {
   motor_2.analogMove(payload.direction[1], payload.speed[1]);
   motor_3.analogMove(payload.direction[2], payload.speed[2]);
   motor_4.analogMove(payload.direction[3], payload.speed[3]);
+
+  // TODO(Richo): This is just for debugging...
+  Serial.print("SET_MOTORS: [");
+  for (int i = 0; i < 4; i++) {
+    if (i > 0) Serial.print(", ");
+    Serial.print((int)payload.speed[i]);
+  }
+  Serial.println("]");
 }
