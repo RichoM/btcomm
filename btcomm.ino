@@ -1,46 +1,12 @@
-#include <MD_MAX72xx.h>
+
 #include <SoftwareSerial.h>
 // #include <DC_driver.h>
-
-#define HARDWARE_TYPE MD_MAX72XX::DR0CR0RR1_HW
-#define NUM_OF_MATRIX 4
-
-#define CLK_PIN   A4
-#define DATA_PIN  A2
-#define CS_PIN    A3
-
-MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, NUM_OF_MATRIX);
+#include "debug.h"
+#include "comm.h"
 
 SoftwareSerial BTserial(8, 9); // RX | TX
 
-struct Stack {
-    uint8_t items[24];
-    uint8_t capacity = 24;
-    uint8_t top = 0;
-
-    Stack() {
-      for (int i = 0; i < capacity; i++) {
-        items[i] = 0;
-      }
-    }
-
-    void push(uint8_t value) {
-        items[top] = value;
-        top++;
-        while (top >= capacity) top -= capacity;
-    }
-
-    void display_on(MD_MAX72XX* mx) {
-        int idx = top;
-        int count = 0;
-        while (count < capacity) {
-            idx--;
-            while (idx < 0) idx += (int)capacity;
-            mx->setRow((uint8_t)(count / 8), count % 8, items[idx]);
-            count++;
-        }
-    }
-};
+MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, NUM_OF_MATRIX);
 
 
 void display_mag(int idx, int value) {
@@ -80,14 +46,8 @@ DC_driver motor_2(4, 2, 5);
 DC_driver motor_3(A1, A0, 10);
 DC_driver motor_4(12, 11, 9);
 
-int readNext() {
-  while (BTserial.available() == 0);
-  int next = BTserial.read();
-  s.push(next);
-  s.display_on(&mx);
-  return next;
-}
 
+Comm comm(&BTserial, &s);
 
 void setup() {
   // inicializar el objeto mx
@@ -108,22 +68,36 @@ void setup() {
   motor_3.begin();
   motor_4.begin();
 
-  BTserial.begin(9600); // Default communication rate of the Bluetooth module
+  BTserial.begin(9600);
 }
 
 void loop() {
+  Message msg = comm.check_incoming();
+  if (msg.type == SET_MOTORS) {
+    handle_set_motors(msg.set_motors);
+  }
+  s.display_on(&mx);
+
   // int pin = readNext();
   // int value = readNext();
   
   // for (int i = 0; i < 8; i++) {
   //   display_mag(i, (sin(((float)counter + i)*0.75) * 0.5 + 0.5) * 256);
   // }
-  motor_1.analogMove(true, 0);
-  motor_2.analogMove(true, 64);
-  motor_3.analogMove(true, 128);
-  motor_4.analogMove(true, 255);
 
-  s.push(counter++);
-  s.display_on(&mx);
-  delay(1);
+  // motor_1.analogMove(true, 0);
+  // motor_2.analogMove(true, 64);
+  // motor_3.analogMove(true, 128);
+  // motor_4.analogMove(true, 255);
+
+  // s.push(counter++);
+  // s.display_on(&mx);
+  // delay(1);
+}
+
+void handle_set_motors(SetMotorsPayload payload) {
+  motor_1.analogMove(payload.direction[0], payload.speed[0]);
+  motor_2.analogMove(payload.direction[1], payload.speed[1]);
+  motor_3.analogMove(payload.direction[2], payload.speed[2]);
+  motor_4.analogMove(payload.direction[3], payload.speed[3]);
 }
