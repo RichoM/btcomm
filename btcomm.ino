@@ -34,7 +34,15 @@ void handle_set_motors(SetMotorsPayload payload) {
   Serial.print("SET_MOTORS: [");
   for (int i = 0; i < 4; i++) {
     if (i > 0) Serial.print(", ");
+    Serial.print("(");
+    if (payload.direction[i]) {
+      Serial.print("F");
+    } else {
+      Serial.print("B");
+    }
+    Serial.print(" ");
     Serial.print((int)payload.speed[i]);
+    Serial.print(")");
   }
   Serial.println("]");
 }
