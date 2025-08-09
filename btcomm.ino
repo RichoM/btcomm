@@ -1,17 +1,14 @@
 
-#include <SoftwareSerial.h>
 // #include <DC_driver.h>
 #include "debug.h"
 #include "comm.h"
-
-SoftwareSerial BTserial(8, 9); // RX | TX
 
 DC_driver motor_1(7, 8, 6);
 DC_driver motor_2(4, 2, 5);
 DC_driver motor_3(A1, A0, 10);
 DC_driver motor_4(12, 11, 9);
 
-Comm comm(&BTserial);
+Comm comm(&Serial);
 
 void setup() {
   debug_begin();
@@ -21,7 +18,7 @@ void setup() {
   motor_3.begin();
   motor_4.begin();
 
-  BTserial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop() {
