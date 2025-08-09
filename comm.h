@@ -33,13 +33,10 @@ private:
   Stream* serial;
 	StreamReader reader;
 
-  Stack* stack;
-
 public:
-  Comm(Stream* serial, Stack* stack) : reader(serial) 
+  Comm(Stream* serial) : reader(serial) 
   {
     this->serial = serial;
-    this->stack = stack;
   }
   
   Message check_incoming() 
@@ -48,7 +45,7 @@ public:
     
     bool timeout;
     uint8 in = reader.next(timeout);
-    stack->push(in);
+    s.push(in);
     
     if (timeout) return NO_MESSAGE;
 
@@ -64,23 +61,23 @@ public:
 
     bool timeout;
     uint8 directions = reader.next(timeout);
-    stack->push(directions);
+    s.push(directions);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_1 = reader.next(timeout);
-    stack->push(motor_1);
+    s.push(motor_1);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_2 = reader.next(timeout);
-    stack->push(motor_2);
+    s.push(motor_2);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_3 = reader.next(timeout);
-    stack->push(motor_3);
+    s.push(motor_3);
     if (timeout) return NO_MESSAGE;
     
     uint8 motor_4 = reader.next(timeout);
-    stack->push(motor_4);
+    s.push(motor_4);
     if (timeout) return NO_MESSAGE;
     
     SetMotorsPayload payload;
