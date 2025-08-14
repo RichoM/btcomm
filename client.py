@@ -15,6 +15,7 @@ class Comm:
         port = serial.Serial(port_name, baudrate=9600)
         if port.is_open:
             self.port = port
+            self.start_debug_thread()
             return True
         else:
             return False
@@ -23,6 +24,19 @@ class Comm:
         if self.is_connected():
             self.port.close()
             self.port = None
+
+    def start_debug_thread(self):
+        t = threading.Thread(target=lambda: self.debug_printout())
+        t.start()
+
+    def debug_printout(self):
+        try:
+            while self.is_connected():
+                line = self.port.readline()
+                print(line.decode("utf-8"))
+        except Exception:
+            print("ERROR reading! Bye...")
+            self.disconnect()
 
     def set_motors(self, motor_1, motor_2, motor_3, motor_4):
         if not self.is_connected(): return
@@ -75,11 +89,18 @@ comm.connect("COM21") # USB
 comm.connect("COM23") # Bluetooth
 print("Connected!")
 
-comm.turn_left()
-comm.turn_right()
-comm.move_left()
-comm.move_right()
+comm.set_motors(255, 0, 0, 0)
 
+comm.turn_left()
+comm.stop()
+
+comm.turn_right()
+comm.stop()
+
+comm.move_left()
+comm.stop()
+
+comm.move_right()
 comm.stop()
 
 comm.disconnect()

@@ -70,6 +70,11 @@ void handle_turn(TurnPayload payload)
   motor_2.analogMove(payload.is_clockwise, payload.speed);
   motor_3.analogMove(payload.is_clockwise, payload.speed);
   motor_4.analogMove(payload.is_clockwise, payload.speed);
+
+  Serial.print("TURN: ");
+  Serial.print(payload.is_clockwise);
+  Serial.print(", ");
+  Serial.println(payload.speed);
 }
 
 
@@ -79,5 +84,10 @@ void handle_move_lr(MoveLRPayload payload)
   motor_2.analogMove(payload.is_left, payload.speed);
   motor_3.analogMove(payload.is_left, payload.speed);
   motor_4.analogMove(!payload.is_left, payload.speed);
+
+  Serial.print("MOVE_LR: ");
+  Serial.print(payload.is_left);
+  Serial.print(", ");
+  Serial.println(payload.speed);
 }
 
