@@ -3,6 +3,13 @@
 #include "types.h"
 #include "reader.h"
 
+enum MessageType 
+{
+  SET_MOTORS = 1,
+  TURN = 2,
+  MOVE_LR = 3,
+};
+
 struct SetMotorsPayload 
 {
   bool direction[4];
@@ -21,13 +28,8 @@ struct MoveLRPayload
   uint8 speed;
 };
 
-enum MessageType {
-  SET_MOTORS = 1,
-  TURN = 2,
-  MOVE_LR = 3,
-};
-
-struct Message {
+struct Message 
+{
     MessageType type;
     union 
     {
