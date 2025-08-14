@@ -8,7 +8,8 @@ DC_driver motor_4(12, 11, 9);
 
 Comm comm(&Serial);
 
-void setup() {
+void setup() 
+{
   motor_1.begin();
   motor_2.begin();
   motor_3.begin();
@@ -17,14 +18,26 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop() {
+void loop() 
+{
   Message msg = comm.check_incoming();
-  if (msg.type == SET_MOTORS) {
+  
+  if (msg.type == SET_MOTORS) 
+  {
     handle_set_motors(msg.set_motors);
+  }
+  else if (msg.type == TURN) 
+  {
+    handle_turn(msg.turn);
+  }
+  else if (msg.type == MOVE_LR)
+  {
+    handle_move_lr(msg.move_lr);
   }
 }
 
-void handle_set_motors(SetMotorsPayload payload) {
+void handle_set_motors(SetMotorsPayload payload) 
+{
   motor_1.analogMove(payload.direction[0], payload.speed[0]);
   motor_2.analogMove(payload.direction[1], payload.speed[1]);
   motor_3.analogMove(payload.direction[2], payload.speed[2]);
@@ -32,12 +45,16 @@ void handle_set_motors(SetMotorsPayload payload) {
 
   // TODO(Richo): This is just for debugging...
   Serial.print("SET_MOTORS: [");
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) 
+  {
     if (i > 0) Serial.print(", ");
     Serial.print("(");
-    if (payload.direction[i]) {
+    if (payload.direction[i]) 
+    {
       Serial.print("F");
-    } else {
+    } 
+    else 
+    {
       Serial.print("B");
     }
     Serial.print(" ");
@@ -46,3 +63,21 @@ void handle_set_motors(SetMotorsPayload payload) {
   }
   Serial.println("]");
 }
+
+void handle_turn(TurnPayload payload)
+{
+  motor_1.analogMove(payload.is_clockwise, payload.speed);
+  motor_2.analogMove(payload.is_clockwise, payload.speed);
+  motor_3.analogMove(payload.is_clockwise, payload.speed);
+  motor_4.analogMove(payload.is_clockwise, payload.speed);
+}
+
+
+void handle_move_lr(MoveLRPayload payload)
+{
+  motor_1.analogMove(!payload.is_left, payload.speed);
+  motor_2.analogMove(payload.is_left, payload.speed);
+  motor_3.analogMove(payload.is_left, payload.speed);
+  motor_4.analogMove(!payload.is_left, payload.speed);
+}
+

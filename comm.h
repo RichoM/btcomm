@@ -9,17 +9,35 @@ struct SetMotorsPayload
   uint8 speed[4];
 };
 
+struct TurnPayload
+{
+  bool is_clockwise;
+  uint8 speed;
+};
+
+struct MoveLRPayload
+{
+  bool is_left;
+  uint8 speed;
+};
+
 enum MessageType {
   SET_MOTORS = 1,
+  TURN = 2,
+  MOVE_LR = 3,
 };
 
 struct Message {
     MessageType type;
-    union {
+    union 
+    {
         SetMotorsPayload set_motors;
+        TurnPayload turn;
+        MoveLRPayload move_lr;
     };
 
-    Message(MessageType type) {
+    Message(MessageType type) 
+    {
         this->type = type;
     }
 };
@@ -51,12 +69,18 @@ public:
     {
       return read_set_motor_speeds();
     }
+    else if (in == TURN)
+    {
+      return read_turn();
+    }
+    else if (in == MOVE_LR)
+    {
+      return read_move_lr();
+    }
   }
 
   Message read_set_motor_speeds()
   {
-    Message msg(SET_MOTORS);
-
     bool timeout;
     uint8 directions = reader.next(timeout);
     if (timeout) return NO_MESSAGE;
@@ -83,7 +107,44 @@ public:
     payload.speed[2] = motor_3;
     payload.speed[3] = motor_4;
 
+    Message msg(SET_MOTORS);
     msg.set_motors = payload;
+    return msg;
+  }
+
+  Message read_turn()
+  {
+    bool timeout;
+    uint8 is_clockwise = reader.next(timeout);
+    if (timeout) return NO_MESSAGE;
+
+    uint8 speed = reader.next(timeout);
+    if (timeout) return NO_MESSAGE;
+
+    TurnPayload payload;
+    payload.is_clockwise = is_clockwise;
+    payload.speed = speed;
+
+    Message msg(TURN);
+    msg.turn = payload;
+    return msg;
+  }
+
+  Message read_move_lr()
+  {
+    bool timeout;
+    uint8 is_left = reader.next(timeout);
+    if (timeout) return NO_MESSAGE;
+
+    uint8 speed = reader.next(timeout);
+    if (timeout) return NO_MESSAGE;
+
+    MoveLRPayload payload;
+    payload.is_left = is_left;
+    payload.speed = speed;
+
+    Message msg(MOVE_LR);
+    msg.move_lr = payload;
     return msg;
   }
 };

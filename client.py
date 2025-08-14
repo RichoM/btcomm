@@ -1,5 +1,6 @@
 import serial
 import time
+import threading
 
 class Comm:
     def __init__(self):
@@ -11,7 +12,7 @@ class Comm:
     def connect(self, port_name):
         if self.is_connected(): return False
 
-        port = serial.Serial(port_name)
+        port = serial.Serial(port_name, baudrate=9600)
         if port.is_open:
             self.port = port
             return True
@@ -35,22 +36,51 @@ class Comm:
         msg = bytes([1, directions, abs(motor_1), abs(motor_2), abs(motor_3), abs(motor_4)])
         self.port.write(msg)
 
+    def turn(self, speed):
+        if not self.is_connected(): return
+
+        is_clockwise = speed > 0
+
+        msg = bytes([2, is_clockwise, abs(speed)])
+        self.port.write(msg)
+
+    def turn_left(self, speed=255):
+        self.turn(-speed)
+
+    def turn_right(self, speed=255):
+        self.turn(speed)
+
+    def move_lr(self, speed):
+        if not self.is_connected(): return
+
+        is_left = speed < 0
+
+        msg = bytes([3, is_left, abs(speed)])
+        self.port.write(msg)
+
+    def move_left(self, speed=255):
+        self.move_lr(-speed)
+    
+    def move_right(self, speed=255):
+        self.move_lr(speed)
+
+    def stop(self):
+        self.set_motors(0, 0, 0, 0)
+
     def readline(self):
         return self.port.readline() # TODO(Richo): Just for debugging...
 
 comm = Comm()
-comm.connect("COM26")
+comm.connect("COM21") # USB
+comm.connect("COM23") # Bluetooth
+print("Connected!")
 
-comm.set_motors(32, 64, 128, 255)
-print(comm.readline())
-time.sleep(2)
+comm.turn_left()
+comm.turn_right()
+comm.move_left()
+comm.move_right()
 
-comm.set_motors(0, 0, 0, 0)
-print(comm.readline())
-time.sleep(2)
-
-comm.set_motors(-255, -128, -64, -32)
-print(comm.readline())
-time.sleep(2)
+comm.stop()
 
 comm.disconnect()
+
