@@ -24,28 +24,35 @@ void setup()
 
 void loop() 
 {
-  Message msg = comm.check_incoming();
-  
-  if (msg.type == SET_MOTORS) 
+  Message msg;
+  bool has_msg = comm.check_incoming(&msg);
+  if (has_msg) 
   {
-    handle_set_motors(msg.set_motors);
-  }
-  else if (msg.type == TURN) 
-  {
-    handle_turn(msg.turn);
-  }
-  else if (msg.type == MOVE_LR)
-  {
-    handle_move_lr(msg.move_lr);
+    if (msg.type == SET_MOTORS)
+    {
+      handle_set_motors(&msg.set_motors);
+    }
+    else if (msg.type == TURN)
+    {
+      handle_turn(&msg.turn);
+    }
+    else if (msg.type == MOVE_LR)
+    {
+      handle_move_lr(&msg.move_lr);
+    }
+    else
+    {
+      serial->println("ERROR: NO MESSAGE!");
+    }
   }
 }
 
-void handle_set_motors(SetMotorsPayload payload) 
+void handle_set_motors(SetMotorsPayload* payload) 
 {
-  motor_1.analogMove(payload.direction[0], payload.speed[0]);
-  motor_2.analogMove(payload.direction[1], payload.speed[1]);
-  motor_3.analogMove(payload.direction[2], payload.speed[2]);
-  motor_4.analogMove(payload.direction[3], payload.speed[3]);
+  motor_1.analogMove(payload->direction[0], payload->speed[0]);
+  motor_2.analogMove(payload->direction[1], payload->speed[1]);
+  motor_3.analogMove(payload->direction[2], payload->speed[2]);
+  motor_4.analogMove(payload->direction[3], payload->speed[3]);
 
   // TODO(Richo): This is just for debugging...
   serial->print("SET_MOTORS: [");
@@ -53,7 +60,7 @@ void handle_set_motors(SetMotorsPayload payload)
   {
     if (i > 0) serial->print(", ");
     serial->print("(");
-    if (payload.direction[i]) 
+    if (payload->direction[i]) 
     {
       serial->print("F");
     } 
@@ -62,38 +69,38 @@ void handle_set_motors(SetMotorsPayload payload)
       serial->print("B");
     }
     serial->print(" ");
-    serial->print((int)payload.speed[i]);
+    serial->print((int)payload->speed[i]);
     serial->print(")");
   }
   serial->println("]");
 }
 
-void handle_turn(TurnPayload payload)
+void handle_turn(TurnPayload* payload)
 {
-  motor_1.analogMove(payload.is_clockwise, payload.speed);
-  motor_2.analogMove(payload.is_clockwise, payload.speed);
-  motor_3.analogMove(payload.is_clockwise, payload.speed);
-  motor_4.analogMove(payload.is_clockwise, payload.speed);
+  motor_1.analogMove(payload->is_clockwise, payload->speed);
+  motor_2.analogMove(payload->is_clockwise, payload->speed);
+  motor_3.analogMove(payload->is_clockwise, payload->speed);
+  motor_4.analogMove(payload->is_clockwise, payload->speed);
 
   // TODO(Richo): This is just for debugging...
   serial->print("TURN: ");
-  serial->print(payload.is_clockwise);
+  serial->print(payload->is_clockwise);
   serial->print(", ");
-  serial->println(payload.speed);
+  serial->println(payload->speed);
 }
 
 
-void handle_move_lr(MoveLRPayload payload)
+void handle_move_lr(MoveLRPayload* payload)
 {
-  motor_1.analogMove(!payload.is_left, payload.speed);
-  motor_2.analogMove(payload.is_left, payload.speed);
-  motor_3.analogMove(payload.is_left, payload.speed);
-  motor_4.analogMove(!payload.is_left, payload.speed);
+  motor_1.analogMove(!payload->is_left, payload->speed);
+  motor_2.analogMove(payload->is_left, payload->speed);
+  motor_3.analogMove(payload->is_left, payload->speed);
+  motor_4.analogMove(!payload->is_left, payload->speed);
 
   // TODO(Richo): This is just for debugging...
   serial->print("MOVE_LR: ");
-  serial->print(payload.is_left);
+  serial->print(payload->is_left);
   serial->print(", ");
-  serial->println(payload.speed);
+  serial->println(payload->speed);
 }
 

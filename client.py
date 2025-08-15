@@ -84,17 +84,20 @@ class Comm:
     def readline(self):
         return self.port.readline() # TODO(Richo): Just for debugging...
 
-comm = Comm()
-comm.connect("COM21") # USB
-comm.connect("COM23") # Bluetooth
-print("Connected!")
 
-comm.set_motors(255, 0, 0, 0)
+## Example
+comm = Comm()
+comm.connect("COM16") # USB
+comm.connect("COM26") # Bluetooth
+
+comm.set_motors(255, 0, 0, -255)
 
 comm.turn_left()
+comm.turn_left(128)
 comm.stop()
 
 comm.turn_right()
+comm.turn_right(128)
 comm.stop()
 
 comm.move_left()

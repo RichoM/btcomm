@@ -5,6 +5,8 @@
 
 enum MessageType 
 {
+  NO_MESSAGE = 0,
+
   SET_MOTORS = 1,
   TURN = 2,
   MOVE_LR = 3,
@@ -30,21 +32,14 @@ struct MoveLRPayload
 
 struct Message 
 {
-    MessageType type;
+    MessageType type = NO_MESSAGE;
     union 
     {
-        SetMotorsPayload set_motors;
+        SetMotorsPayload set_motors = {0};
         TurnPayload turn;
         MoveLRPayload move_lr;
     };
-
-    Message(MessageType type) 
-    {
-        this->type = type;
-    }
 };
-
-const Message NO_MESSAGE((MessageType)0);
 
 class Comm 
 {
@@ -57,96 +52,83 @@ public:
   {
     this->serial = serial;
   }
-  
-  Message check_incoming() 
+
+  bool check_incoming(Message* msg)
   {
-    if (!reader.available()) return NO_MESSAGE;
-    
+    if (!reader.available()) return false;
+
     bool timeout;
     uint8 in = reader.next(timeout);
-    
-    if (timeout) return NO_MESSAGE;
+
+    if (timeout) return false;
 
     if (in == SET_MOTORS)
     {
-      return read_set_motor_speeds();
+      return read_set_motor_speeds(msg);
     }
     else if (in == TURN)
     {
-      return read_turn();
+      return read_turn(msg);
     }
     else if (in == MOVE_LR)
     {
-      return read_move_lr();
+      return read_move_lr(msg);
     }
   }
 
-  Message read_set_motor_speeds()
+  bool read_set_motor_speeds(Message* msg)
   {
     bool timeout;
+
     uint8 directions = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
-    
-    uint8 motor_1 = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
-    
-    uint8 motor_2 = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
-    
-    uint8 motor_3 = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
-    
-    uint8 motor_4 = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
-    
-    SetMotorsPayload payload;
-    payload.direction[0] = directions & 1;
-    payload.direction[1] = directions & 2;
-    payload.direction[2] = directions & 4;
-    payload.direction[3] = directions & 8;
-    payload.speed[0] = motor_1;
-    payload.speed[1] = motor_2;
-    payload.speed[2] = motor_3;
-    payload.speed[3] = motor_4;
+    if (timeout) return false;
 
-    Message msg(SET_MOTORS);
-    msg.set_motors = payload;
-    return msg;
+    msg->set_motors.direction[0] = directions & 1;
+    msg->set_motors.direction[1] = directions & 2;
+    msg->set_motors.direction[2] = directions & 4;
+    msg->set_motors.direction[3] = directions & 8;
+
+    msg->set_motors.speed[0] = reader.next(timeout);
+    if (timeout) return false;
+
+    msg->set_motors.speed[1] = reader.next(timeout);
+    if (timeout) return false;
+
+    msg->set_motors.speed[2] = reader.next(timeout);
+    if (timeout) return false;
+
+    msg->set_motors.speed[3] = reader.next(timeout);
+    if (timeout) return false;
+
+    msg->type = SET_MOTORS;
+    return true;
   }
 
-  Message read_turn()
+  bool read_turn(Message* msg)
   {
     bool timeout;
-    uint8 is_clockwise = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
 
-    uint8 speed = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
+    msg->turn.is_clockwise = reader.next(timeout);
+    if (timeout) return false;
 
-    TurnPayload payload;
-    payload.is_clockwise = is_clockwise;
-    payload.speed = speed;
+    msg->turn.speed = reader.next(timeout);
+    if (timeout) return false;
 
-    Message msg(TURN);
-    msg.turn = payload;
-    return msg;
+    msg->type = TURN;
+    return true;
   }
 
-  Message read_move_lr()
+  bool read_move_lr(Message* msg)
   {
     bool timeout;
-    uint8 is_left = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
 
-    uint8 speed = reader.next(timeout);
-    if (timeout) return NO_MESSAGE;
+    msg->move_lr.is_left = reader.next(timeout);
+    if (timeout) return false;
 
-    MoveLRPayload payload;
-    payload.is_left = is_left;
-    payload.speed = speed;
+    msg->move_lr.speed = reader.next(timeout);
+    if (timeout) return false;
 
-    Message msg(MOVE_LR);
-    msg.move_lr = payload;
-    return msg;
+    msg->type = MOVE_LR;
+    return true;
   }
 };
