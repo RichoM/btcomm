@@ -6,7 +6,11 @@ DC_driver motor_2(4, 2, 5);
 DC_driver motor_3(A1, A0, 10);
 DC_driver motor_4(12, 11, 9);
 
-Comm comm(&Serial);
+// NOTE(Richo): While Arduino UNO R3 has just one serial port, the UNO R4 has two:
+// Serial for the USB-C and Serial1 for the RX/TX pins. So the next line allows to
+// choose which serial to use for the comm protocol.
+HardwareSerial* serial = &Serial1;
+Comm comm(serial);
 
 void setup() 
 {
@@ -15,7 +19,7 @@ void setup()
   motor_3.begin();
   motor_4.begin();
 
-  Serial.begin(9600);
+  serial->begin(9600);
 }
 
 void loop() 
@@ -44,24 +48,24 @@ void handle_set_motors(SetMotorsPayload payload)
   motor_4.analogMove(payload.direction[3], payload.speed[3]);
 
   // TODO(Richo): This is just for debugging...
-  Serial.print("SET_MOTORS: [");
+  serial->print("SET_MOTORS: [");
   for (int i = 0; i < 4; i++) 
   {
-    if (i > 0) Serial.print(", ");
-    Serial.print("(");
+    if (i > 0) serial->print(", ");
+    serial->print("(");
     if (payload.direction[i]) 
     {
-      Serial.print("F");
+      serial->print("F");
     } 
     else 
     {
-      Serial.print("B");
+      serial->print("B");
     }
-    Serial.print(" ");
-    Serial.print((int)payload.speed[i]);
-    Serial.print(")");
+    serial->print(" ");
+    serial->print((int)payload.speed[i]);
+    serial->print(")");
   }
-  Serial.println("]");
+  serial->println("]");
 }
 
 void handle_turn(TurnPayload payload)
@@ -71,10 +75,11 @@ void handle_turn(TurnPayload payload)
   motor_3.analogMove(payload.is_clockwise, payload.speed);
   motor_4.analogMove(payload.is_clockwise, payload.speed);
 
-  Serial.print("TURN: ");
-  Serial.print(payload.is_clockwise);
-  Serial.print(", ");
-  Serial.println(payload.speed);
+  // TODO(Richo): This is just for debugging...
+  serial->print("TURN: ");
+  serial->print(payload.is_clockwise);
+  serial->print(", ");
+  serial->println(payload.speed);
 }
 
 
@@ -85,9 +90,10 @@ void handle_move_lr(MoveLRPayload payload)
   motor_3.analogMove(payload.is_left, payload.speed);
   motor_4.analogMove(!payload.is_left, payload.speed);
 
-  Serial.print("MOVE_LR: ");
-  Serial.print(payload.is_left);
-  Serial.print(", ");
-  Serial.println(payload.speed);
+  // TODO(Richo): This is just for debugging...
+  serial->print("MOVE_LR: ");
+  serial->print(payload.is_left);
+  serial->print(", ");
+  serial->println(payload.speed);
 }
 
