@@ -44,7 +44,7 @@ struct Message
     }
 };
 
-const Message NO_MESSAGE(0);
+const Message NO_MESSAGE((MessageType)0);
 
 class Comm 
 {
